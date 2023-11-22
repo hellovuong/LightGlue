@@ -33,25 +33,26 @@ def on_message(client, userdata, msg):
     # Parse the JSON data and convert it back to feats
     received_feats_list = json.loads(json_data, object_hook=convert_to_tensors)
     print("Decoded msg. Start to matched")
-    matches01 = matcher({"image0": received_feats_list[0], "image1": received_feats_list[1]})
-
-    print("Decoded msg. Visualizing result")
-    feats0, feats1, matches01 = [
-        rbd(x) for x in [received_feats_list[0], received_feats_list[1], matches01]
-    ]  # remove batch dimension
-    
-    kpts0, kpts1, matches = feats0["keypoints"], feats1["keypoints"], matches01["matches"]
-    m_kpts0, m_kpts1 = kpts0[matches[..., 0]], kpts1[matches[..., 1]]
-    
-
-    images = Path("assets")
-    image0 = load_image(images / "sacre_coeur1.jpg")
-    image1 = load_image(images / "sacre_coeur2.jpg")
-    axes = viz2d.plot_images([image0, image1])
-    viz2d.plot_matches(m_kpts0, m_kpts1, color="lime", lw=0.2)
-    viz2d.add_text(0, f'Stop after {matches01["stop"]} layers')
-    viz2d.save_plot("./test.png")
-    print("Done matching")
+    kpt0, kpt1 = received_feats_list[0]["keypoints"], received_feats_list[1]["keypoints"]
+    # matches01 = matcher({"image0": received_feats_list[0], "image1": received_feats_list[1]})
+    #
+    # print("Decoded msg. Visualizing result")
+    # feats0, feats1, matches01 = [
+    #     rbd(x) for x in [received_feats_list[0], received_feats_list[1], matches01]
+    # ]  # remove batch dimension
+    # 
+    # kpts0, kpts1, matches = feats0["keypoints"], feats1["keypoints"], matches01["matches"]
+    # m_kpts0, m_kpts1 = kpts0[matches[..., 0]], kpts1[matches[..., 1]]
+    # 
+    #
+    # images = Path("assets")
+    # image0 = load_image(images / "sacre_coeur1.jpg")
+    # image1 = load_image(images / "sacre_coeur2.jpg")
+    # axes = viz2d.plot_images([image0, image1])
+    # viz2d.plot_matches(m_kpts0, m_kpts1, color="lime", lw=0.2)
+    # viz2d.add_text(0, f'Stop after {matches01["stop"]} layers')
+    # viz2d.save_plot("./test.png")
+    # print("Done matching")
 
 
 torch.set_grad_enabled(False)
