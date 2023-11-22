@@ -45,8 +45,22 @@ if __name__ == "__main__":
     
     feats0 = extractor.extract(image0.to(device))
     feats1 = extractor.extract(image1.to(device))
+
+    feats0_cpu = {
+        "keypoints": feats0["keypoints"].tolist(),
+        "descriptors": feats0["descriptors"].tolist(),
+        "image_size": feats0["image_size"][None].float().tolist(),
+    }
+    
+    feats1_cpu = {
+        "keypoints": feats1["keypoints"].tolist(),
+        "descriptors": feats1["descriptors"].tolist(),
+        "image_size": feats1["image_size"][None].float().tolist(),
+    }
+    print(feats0_cpu["keypoints"])
+    print(feats1_cpu["keypoints"])
     # Convert the feats dictionaries to a list
-    feats_list = [feats0, feats1]
+    feats_list = [feats0_cpu, feats1_cpu]
     
     # Convert the list of feats dictionaries to JSON
     json_data = json.dumps(convert_to_lists(feats_list), indent=2)
