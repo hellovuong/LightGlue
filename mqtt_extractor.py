@@ -9,8 +9,6 @@ import paho.mqtt.client as mqtt
 
 import json
 
-from mqtt_matcher import on_message 
-
 MATCHED_TOPIC = "matches"
 
 MQTT_HOST = "localhost"
@@ -50,7 +48,7 @@ def on_message(client, userdata, msg):
     kpts0, kpts1= feats0_test["keypoints"], feats1_test["keypoints"]
     m_kpts0, m_kpts1 = kpts0[matches[..., 0]], kpts1[matches[..., 1]]
 
-    axes = viz2d.plot_images([image0, image1])
+    viz2d.plot_images([image0, image1])
     viz2d.plot_matches(m_kpts0, m_kpts1, color="lime", lw=0.2)
     viz2d.save_plot("./mqtt_matcher.png")
 
