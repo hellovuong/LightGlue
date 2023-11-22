@@ -1,8 +1,7 @@
 from pathlib import Path
 
 from lightglue import SuperPoint
-from lightglue.utils import load_image, numpy_image_to_torch, rbd
-from lightglue import viz2d
+from lightglue.utils import load_image
 import torch
 
 import paho.mqtt.client as mqtt
