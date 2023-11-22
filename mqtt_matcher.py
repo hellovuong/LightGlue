@@ -5,7 +5,9 @@ import paho.mqtt.client as mqtt
 
 import json
 
-import mqtt_extractor
+from mqtt_extractor import FEATURE_TOPIC, MQTT_PORT, MQTT_HOST
+
+MATCHED_TOPIC = "matches"
 
 
 # Convert JSON data back to feats
@@ -22,7 +24,7 @@ def convert_to_tensors(obj):
 
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code "+str(rc))
-    client.subscribe(mqtt_extractor.FEATURE_TOPIC)
+    client.subscribe(FEATURE_TOPIC)
 
 
 def on_message(client, userdata, msg):
@@ -46,9 +48,9 @@ def on_message(client, userdata, msg):
     matches01 = matcher({"image0": feats0, "image1": feats1})
 
     print("Matched. Start to publish")
-    json_data = json.dumps(matches01["matches"].tolist(), indent=2)
+    json_data = json.dumps(matches01["matches"][0].tolist(), indent=2)
     # Publish the JSON data to MQTT
-    ret, _ = client.publish("matches", json_data, qos=1)
+    ret, _ = client.publish(MATCHED_TOPIC, json_data, qos=1)
     print("Done matching and publishing")
 
 torch.set_grad_enabled(False)
@@ -60,7 +62,7 @@ client = mqtt.Client()
 client.on_connect = on_connect
 client.on_message = on_message
 
-client.connect(mqtt_extractor.MQTT_HOST, 1883, 60)
+client.connect(MQTT_HOST, MQTT_PORT, 60)
 
 client.loop_start()
 try:

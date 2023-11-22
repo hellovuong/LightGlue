@@ -1,12 +1,17 @@
 from pathlib import Path
 
 from lightglue import SuperPoint
-from lightglue.utils import load_image
+from lightglue.utils import load_image, rbd
+from lightglue import viz2d
 import torch
 
 import paho.mqtt.client as mqtt
 
-import json 
+import json
+
+from mqtt_matcher import on_message 
+
+from mqtt_matcher import MATCHED_TOPIC
 
 MQTT_HOST = "localhost"
 MQTT_PORT = 1883
@@ -38,60 +43,59 @@ def on_message(client, userdata, msg):
     matches = torch.tensor(json.loads(json_data)) 
 
     print("Decoded msg. Visualizing result")
-    feats0, feats1, matches01 = [
-        rbd(x) for x in [feats0, feats1, matches01]
+    feats0_test, feats1_test = [
+        rbd(x) for x in [feats0, feats1]
     ]  # remove batch dimension
 
-    kpts0, kpts1, matches = feats0["keypoints"], feats1["keypoints"], matches01["matches"]
+    kpts0, kpts1= feats0_test["keypoints"], feats1_test["keypoints"]
     m_kpts0, m_kpts1 = kpts0[matches[..., 0]], kpts1[matches[..., 1]]
 
     axes = viz2d.plot_images([image0, image1])
     viz2d.plot_matches(m_kpts0, m_kpts1, color="lime", lw=0.2)
-    viz2d.add_text(0, f'Stop after {matches01["stop"]} layers')
     viz2d.save_plot("./mqtt_matcher.png")
 
-if __name__ == "__main__":
-    client = mqtt.Client()
-    client.on_connect = on_connect
-    client.on_message = on_message
-    client.connect(MQTT_HOST, MQTT_PORT, 60)
+client = mqtt.Client()
+client.on_connect = on_connect
+client.on_message = on_message
+client.connect(MQTT_HOST, MQTT_PORT, 60)
 
-    torch.set_grad_enabled(False)
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # 'mps', 'cpu'
-    extractor = SuperPoint(max_num_keypoints=1024).eval().to(device)  # load the extractor
-    
-    images = Path("assets")
-    image0 = load_image(images / "sacre_coeur1.jpg")
-    image1 = load_image(images / "sacre_coeur2.jpg")
-    
-    feats0 = extractor.extract(image0.to(device))
-    feats1 = extractor.extract(image1.to(device))
+torch.set_grad_enabled(False)
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # 'mps', 'cpu'
+extractor = SuperPoint(max_num_keypoints=1024).eval().to(device)  # load the extractor
 
-    feats0_cpu = {
-        "keypoints": feats0["keypoints"].tolist(),
-        "descriptors": feats0["descriptors"].tolist(),
-        "image_size": feats0["image_size"].tolist(),
-    }
-    
-    feats1_cpu = {
-        "keypoints": feats1["keypoints"].tolist(),
-        "descriptors": feats1["descriptors"].tolist(),
-        "image_size": feats1["image_size"].tolist(),
-    }
+images = Path("assets")
+image0 = load_image(images / "sacre_coeur1.jpg")
+image1 = load_image(images / "sacre_coeur2.jpg")
 
-    # Convert the feats dictionaries to a list
-    feats_list = [feats0_cpu, feats1_cpu]
-    
-    # Convert the list of feats dictionaries to JSON
-    json_data = json.dumps(convert_to_lists(feats_list), indent=2)
-    # Publish the JSON data to MQTT
-    client.on_publish = on_publish
-    ret, _ = client.publish(FEATURE_TOPIC, json_data, qos=1)
+feats0 = extractor.extract(image0.to(device))
+feats1 = extractor.extract(image1.to(device))
 
-    client.loop_start()
-    try:
-        while True:
-            pass
-    except KeyboardInterrupt:
-        client.disconnect()
-        client.loop_stop()
+feats0_cpu = {
+    "keypoints": feats0["keypoints"].tolist(),
+    "descriptors": feats0["descriptors"].tolist(),
+    "image_size": feats0["image_size"].tolist(),
+}
+
+feats1_cpu = {
+    "keypoints": feats1["keypoints"].tolist(),
+    "descriptors": feats1["descriptors"].tolist(),
+    "image_size": feats1["image_size"].tolist(),
+}
+
+# Convert the feats dictionaries to a list
+feats_list = [feats0_cpu, feats1_cpu]
+
+# Convert the list of feats dictionaries to JSON
+json_data = json.dumps(convert_to_lists(feats_list), indent=2)
+# Publish the JSON data to MQTT
+client.on_publish = on_publish
+ret, _ = client.publish(FEATURE_TOPIC, json_data, qos=1)
+client.subscribe(MATCHED_TOPIC)
+
+client.loop_start()
+try:
+    while True:
+        pass
+except KeyboardInterrupt:
+    client.disconnect()
+    client.loop_stop()
