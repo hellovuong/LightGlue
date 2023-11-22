@@ -27,12 +27,15 @@ def on_connect(client, userdata, flags, rc):
     client.subscribe(mqtt_extractor.FEATURE_TOPIC)
 
 def on_message(client, userdata, msg):
+    print("Received features. Start to decode msg...")
     # Get the JSON data from the received message
     json_data = msg.payload.decode("utf-8")
     # Parse the JSON data and convert it back to feats
     received_feats_list = json.loads(json_data, object_hook=convert_to_tensors)
+    print("Decoded msg. Start to matched")
     matches01 = matcher({"image0": received_feats_list[0], "image1": received_feats_list[1]})
 
+    print("Decoded msg. Visualizing result")
     feats0, feats1, matches01 = [
         rbd(x) for x in [received_feats_list[0], received_feats_list[1], matches01]
     ]  # remove batch dimension
@@ -48,6 +51,7 @@ def on_message(client, userdata, msg):
     viz2d.plot_matches(m_kpts0, m_kpts1, color="lime", lw=0.2)
     viz2d.add_text(0, f'Stop after {matches01["stop"]} layers')
     viz2d.save_plot("./test.png")
+    print("Done matching")
 
 
 torch.set_grad_enabled(False)
