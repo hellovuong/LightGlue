@@ -11,7 +11,7 @@ import json
 
 from mqtt_matcher import on_message 
 
-from mqtt_matcher import MATCHED_TOPIC
+MATCHED_TOPIC = "matches"
 
 MQTT_HOST = "localhost"
 MQTT_PORT = 1883

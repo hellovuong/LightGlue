@@ -5,7 +5,9 @@ import paho.mqtt.client as mqtt
 
 import json
 
-from mqtt_extractor import FEATURE_TOPIC, MQTT_PORT, MQTT_HOST
+MQTT_HOST = "localhost"
+MQTT_PORT = 1883
+FEATURE_TOPIC = "extracted_pair_image"
 
 MATCHED_TOPIC = "matches"
 
