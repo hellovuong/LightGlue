@@ -49,16 +49,15 @@ if __name__ == "__main__":
     feats0_cpu = {
         "keypoints": feats0["keypoints"].tolist(),
         "descriptors": feats0["descriptors"].tolist(),
-        "image_size": feats0["image_size"][None].float().tolist(),
+        "image_size": feats0["image_size"].tolist(),
     }
     
     feats1_cpu = {
         "keypoints": feats1["keypoints"].tolist(),
         "descriptors": feats1["descriptors"].tolist(),
-        "image_size": feats1["image_size"][None].float().tolist(),
+        "image_size": feats1["image_size"].tolist(),
     }
-    print(feats0_cpu["keypoints"])
-    print(feats1_cpu["keypoints"])
+
     # Convert the feats dictionaries to a list
     feats_list = [feats0_cpu, feats1_cpu]
     

@@ -22,9 +22,11 @@ def convert_to_tensors(obj):
     else:
         return obj
 
+
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code "+str(rc))
     client.subscribe(mqtt_extractor.FEATURE_TOPIC)
+
 
 def on_message(client, userdata, msg):
     print("Received features. Start to decode msg...")
@@ -48,12 +50,11 @@ def on_message(client, userdata, msg):
 
     print("Decoded msg. Visualizing result")
     feats0, feats1, matches01 = [
-        rbd(x) for x in [received_feats_list[0], received_feats_list[1], matches01]
+        rbd(x) for x in [feats0, feats1, matches01]
     ]  # remove batch dimension
 
     kpts0, kpts1, matches = feats0["keypoints"], feats1["keypoints"], matches01["matches"]
     m_kpts0, m_kpts1 = kpts0[matches[..., 0]], kpts1[matches[..., 1]]
-
 
     images = Path("assets")
     image0 = load_image(images / "sacre_coeur1.jpg")
