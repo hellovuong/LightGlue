@@ -30,9 +30,30 @@ def on_connect(client, userdata, flags, rc):
     print(f"Connected to MQTT broker with result code {rc}")
 
 
+def on_message(client, userdata, msg):
+    print("Received features. Start to decode msg...")
+    # Get the JSON data from the received message
+    json_data = msg.payload.decode("utf-8")
+    # Parse the JSON data and convert it back to feats
+    matches = torch.tensor(json.loads(json_data)) 
+
+    print("Decoded msg. Visualizing result")
+    feats0, feats1, matches01 = [
+        rbd(x) for x in [feats0, feats1, matches01]
+    ]  # remove batch dimension
+
+    kpts0, kpts1, matches = feats0["keypoints"], feats1["keypoints"], matches01["matches"]
+    m_kpts0, m_kpts1 = kpts0[matches[..., 0]], kpts1[matches[..., 1]]
+
+    axes = viz2d.plot_images([image0, image1])
+    viz2d.plot_matches(m_kpts0, m_kpts1, color="lime", lw=0.2)
+    viz2d.add_text(0, f'Stop after {matches01["stop"]} layers')
+    viz2d.save_plot("./mqtt_matcher.png")
+
 if __name__ == "__main__":
     client = mqtt.Client()
     client.on_connect = on_connect
+    client.on_message = on_message
     client.connect(MQTT_HOST, MQTT_PORT, 60)
 
     torch.set_grad_enabled(False)
