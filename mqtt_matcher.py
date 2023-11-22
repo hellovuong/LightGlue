@@ -39,12 +39,12 @@ def on_message(client, userdata, msg):
     feats0 = {
         "keypoints":   torch.tensor(received_feats_list[0]["keypoints"]).to(device),
         "descriptors": torch.tensor(received_feats_list[0]["descriptors"]).to(device),
-        "image_size":  torch.tensor(received_feats_list[0]["image_size"][None].float()).to(device),
+        "image_size":  torch.tensor(received_feats_list[0]["image_size"]).to(device),
     }
     feats1 = {
         "keypoints":   torch.tensor(received_feats_list[1]["keypoints"]).to(device),
         "descriptors": torch.tensor(received_feats_list[1]["descriptors"]).to(device),
-        "image_size":  torch.tensor(received_feats_list[1]["image_size"][None].float()).to(device),
+        "image_size":  torch.tensor(received_feats_list[1]["image_size"]).to(device),
     }
     matches01 = matcher({"image0": feats0, "image1": feats1})
 
